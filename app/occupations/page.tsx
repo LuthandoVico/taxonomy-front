@@ -1,0 +1,25 @@
+'use client';
+
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+import { ArrowUpRight, BriefcaseBusiness, ChevronLeft, ChevronRight, Filter, ListFilter } from 'lucide-react';
+import { getOccupations } from '@/lib/services';
+import { SearchBar } from '@/components/app-shell';
+import { EmptyState, TaxonomyBadge } from '@/components/taxonomy-ui';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+export default function OccupationsPage() {
+  const occupations = getOccupations();
+  const [query, setQuery] = useState('');
+  const [taxonomy, setTaxonomy] = useState('all');
+  const [page, setPage] = useState(1);
+  const filtered = useMemo(() => occupations.filter((item) => { const matchesQuery = !query || `${item.title} ${item.ofoCode}`.toLowerCase().includes(query.toLowerCase()); const matchesTaxonomy = taxonomy === 'all' || item.taxonomy === taxonomy; return matchesQuery && matchesTaxonomy; }), [occupations, query, taxonomy]);
+  const pageSize = 8;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const changeQuery = (value: string) => { setQuery(value); setPage(1); };
+  const changeTaxonomy = (value: string) => { setTaxonomy(value); setPage(1); };
+  return <div className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 lg:px-10 lg:py-12"><PageHeader eyebrow="Occupation explorer" title="Occupations" description="Browse the OFO occupation taxonomy and follow each role into its skills, tasks, specialisations and ESCO matches." /><div className="mb-5 flex flex-col gap-3 sm:flex-row"><div className="flex-1"><SearchBar value={query} onChange={changeQuery} placeholder="Search by occupation name or OFO code..." /></div><Select value={taxonomy} onValueChange={changeTaxonomy}><SelectTrigger className="w-full bg-white sm:w-[180px]"><ListFilter className="mr-2 h-4 w-4 text-slate-400" /><SelectValue placeholder="Taxonomy" /></SelectTrigger><SelectContent><SelectItem value="all">All taxonomies</SelectItem><SelectItem value="OFO">OFO</SelectItem><SelectItem value="ESCO">ESCO</SelectItem></SelectContent></Select></div><div className="mb-4 flex items-center justify-between text-xs text-slate-500"><span><span className="font-semibold text-slate-800">{filtered.length}</span> occupations</span><span className="hidden items-center gap-1 sm:flex"><Filter className="h-3.5 w-3.5" /> Filtered results</span></div>{visible.length ? <div className="overflow-hidden rounded-lg border border-slate-200 bg-white"><div className="hidden grid-cols-[minmax(220px,2fr)_130px_90px_80px_80px_100px_36px] gap-4 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 md:grid"><span>Occupation</span><span>OFO code</span><span>Taxonomy</span><span>Skills</span><span>Tasks</span><span>ESCO matches</span><span /></div>{visible.map((item) => <Link href={`/occupations/ofo/${item.ofoCode}`} key={item.id} className="group grid gap-2 border-b border-slate-100 px-5 py-4 transition last:border-0 hover:bg-blue-50/30 md:grid-cols-[minmax(220px,2fr)_130px_90px_80px_80px_100px_36px] md:items-center md:gap-4"><div className="flex items-center gap-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-blue-50 text-blue-600"><BriefcaseBusiness className="h-4 w-4" /></span><div><p className="text-sm font-semibold text-slate-800 group-hover:text-[#1959c2]">{item.title}</p><p className="mt-0.5 line-clamp-1 text-xs text-slate-500 md:hidden">{item.description}</p></div></div><span className="font-mono text-[11px] text-slate-500">{item.ofoCode}</span><span><TaxonomyBadge taxonomy={item.taxonomy} /></span><span className="text-xs text-slate-600"><span className="font-semibold">{item.skillsCount}</span> skills</span><span className="text-xs text-slate-600"><span className="font-semibold">{item.tasksCount}</span> tasks</span><span className="text-xs text-slate-600"><span className="font-semibold">{item.escoMatchesCount}</span> matches</span><ArrowUpRight className="hidden h-4 w-4 text-slate-300 group-hover:text-[#1959c2] md:block" /></Link>)}</div> : <EmptyState title="No occupations match your search" description="Try a different occupation name, OFO code or taxonomy filter." />}<div className="mt-5 flex items-center justify-between"><p className="text-xs text-slate-500">Showing {filtered.length ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, filtered.length)} of {filtered.length}</p><div className="flex items-center gap-1"><Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((current) => current - 1)}><ChevronLeft className="mr-1 h-3.5 w-3.5" />Previous</Button><span className="px-2 text-xs font-semibold text-slate-600">{page} / {pageCount}</span><Button variant="outline" size="sm" disabled={page === pageCount} onClick={() => setPage((current) => current + 1)}>Next<ChevronRight className="ml-1 h-3.5 w-3.5" /></Button></div></div></div>;
+}

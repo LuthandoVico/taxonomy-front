@@ -1,0 +1,5 @@
+import { SearchBar } from '@/components/app-shell';
+
+export function PageHeader({ eyebrow, title, description, search, searchValue, onSearchChange, onSearchSubmit, children }: { eyebrow?: string; title: string; description?: string; search?: boolean; searchValue?: string; onSearchChange?: (value: string) => void; onSearchSubmit?: () => void; children?: React.ReactNode }) {
+  return <div className="mb-8 flex flex-col justify-between gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end"><div className="max-w-2xl"><div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1959c2]">{eyebrow || 'Taxonomy explorer'}</div><h1 className="mt-2 text-3xl font-bold tracking-[-0.03em] text-slate-950 sm:text-4xl">{title}</h1>{description && <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-500">{description}</p>}</div>{search && <div className="w-full max-w-md"><SearchBar value={searchValue} onChange={onSearchChange} onSubmit={onSearchSubmit} /></div>}{children}</div>;
+}
